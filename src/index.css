@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  /* Colors */
+  --color-primary: #2E7D32;   /* Deep green for nature */
+  --color-secondary: #8BC34A; /* Fresh green accent */
+  --color-accent: #FFC107;    /* Sunny yellow for energy */
+  --color-sky: #4FC3F7;       /* Clear sky blue */
+  --color-earth: #795548;     /* Soil brown */
+  --color-background: #F9FAF5; /* Light earthy background */
+  --color-surface: #FFFFFF;   /* White cards/panels */
+  --color-text: #2E2E2E;      /* Dark gray text */
+  --color-muted: #9E9E9E;     /* Muted gray */
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui;
+  --font-display: "Poppins", "Inter", sans-serif;
+
+  /* Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 10px rgba(0,0,0,0.08);
+  --shadow-hover: 0 6px 14px rgba(0,0,0,0.12);
+
+  /* Spacing */
+  --spacing-72: 18rem;
+  --spacing-84: 21rem;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Custom animations */
+@keyframes gentle-bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+.animate-gentle-bounce {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+@keyframes grow {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-grow {
+  animation: grow 3s ease-in-out infinite;
+}
+
+/* Custom utility classes */
+.card {
+  @apply bg-surface p-6 rounded-lg shadow-card hover:shadow-hover transition-all duration-300;
+}
+
+.btn-primary {
+  @apply bg-primary hover:bg-secondary text-white font-medium px-6 py-3 rounded-full transition-all duration-200 transform hover:scale-105;
+}
+
+.btn-accent {
+  @apply bg-accent hover:bg-yellow-400 text-text font-medium px-6 py-3 rounded-full transition-all duration-200 transform hover:scale-105;
+}
