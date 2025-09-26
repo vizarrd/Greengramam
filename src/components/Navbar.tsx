@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { i18n, t } = useTranslation();
+  const { signOut } = useAuth();
 
   const navigation = [
     { name: t('home'), href: '/' },
     { name: t('game'), href: 'https://green-gramam.vercel.app/', external: true },
-    { name: t('dashboard'), href: '/dashboard' },
     { name: t('leaderboard'), href: '/leaderboard' },
     { name: t('profile'), href: '/profile' },
   ];
@@ -21,6 +22,13 @@ const Navbar = () => {
   const toggleLanguage = () => {
     const newLang = i18n.language === "en" ? "ml" : "en";
     i18n.changeLanguage(newLang);
+    // Store language preference in localStorage
+    localStorage.setItem('preferred-language', newLang);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsOpen(false);
   };
   return (
     <nav className="bg-primary shadow-lg sticky top-0 z-50">
@@ -79,6 +87,15 @@ const Navbar = () => {
                 >
                   {i18n.language === "en" ? "EN" : "മ"}
                 </div>
+              </button>
+
+              {/* Logout Button */}
+              <button
+                onClick={handleSignOut}
+                className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white ml-2"
+                title="Sign Out"
+              >
+                <ArrowRightOnRectangleIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
@@ -148,6 +165,15 @@ const Navbar = () => {
                 </Link>
               )
             ))}
+            
+            {/* Mobile Logout Button */}
+            <button
+              onClick={handleSignOut}
+              className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
+              Sign Out
+            </button>
           </div>
         </div>
       )}

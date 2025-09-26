@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Card from '../components/Card';
 
 const Leaderboard = () => {
+  const { t } = useTranslation();
   const [selectedFilter, setSelectedFilter] = useState('panchayat');
 
   const leaderboardData = {
@@ -30,19 +32,19 @@ const Leaderboard = () => {
   };
 
   const filters = [
-    { key: 'panchayat', label: 'My Panchayat', icon: '🏘️' },
-    { key: 'district', label: 'District', icon: '🏛️' },
-    { key: 'state', label: 'Kerala', icon: '🌴' },
+    { key: 'panchayat', label: t('myPanchayat'), icon: '🏘️' },
+    { key: 'district', label: t('districtLevel'), icon: '🏛️' },
+    { key: 'state', label: t('kerala'), icon: '🌴' },
   ];
 
   const achievements = [
-    { title: 'Top Sustainability Score', description: 'Achieved 95%+ sustainability rating', icon: '🌿' },
-    { title: 'Water Conservation Champion', description: 'Reduced water usage by 40%', icon: '💧' },
-    { title: 'Organic Pioneer', description: '6 months without chemicals', icon: '🌱' },
-    { title: 'Community Mentor', description: 'Helped 10+ farmers', icon: '👥' },
+    { title: t('topSustainabilityScore'), description: t('achievedSustainability'), icon: '🌿' },
+    { title: t('waterConservationChampion'), description: t('reducedWaterUsage'), icon: '💧' },
+    { title: t('organicPioneer'), description: t('monthsWithoutChemicals'), icon: '🌱' },
+    { title: t('communityMentor'), description: t('helpedFarmers'), icon: '👥' },
   ];
 
-  const currentUser = { rank: 12, name: 'You', xp: 1850, sustainabilityScore: 85 };
+  const currentUser = { rank: 12, name: t('you'), xp: 1850, sustainabilityScore: 85 };
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'text-yellow-600';
@@ -64,9 +66,9 @@ const Leaderboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-text mb-2">
-            Leaderboard
+            {t('leaderboardTitle')}
           </h1>
-          <p className="text-muted">See how you rank among fellow sustainable farmers</p>
+          <p className="text-muted">{t('leaderboardSubtitle')}</p>
         </div>
 
         {/* Filter Tabs */}
@@ -92,7 +94,7 @@ const Leaderboard = () => {
           <div className="lg:col-span-3">
             <Card>
               <h2 className="font-display font-semibold text-xl mb-6">
-                {filters.find(f => f.key === selectedFilter)?.label} Rankings
+                {filters.find(f => f.key === selectedFilter)?.label} {t('rank')}
               </h2>
               
               <div className="space-y-4">
@@ -140,18 +142,18 @@ const Leaderboard = () => {
                     <div className="text-3xl">👨‍🌾</div>
                     <div>
                       <h3 className="font-semibold text-text">{currentUser.name}</h3>
-                      <p className="text-sm text-muted">Your Position</p>
+                      <p className="text-sm text-muted">{t('yourPosition')}</p>
                     </div>
                   </div>
                   
                   <div className="text-right">
                     <div className="flex items-center space-x-4">
                       <div>
-                        <p className="text-sm text-muted">XP</p>
+                        <p className="text-sm text-muted">{t('xpPoints')}</p>
                         <p className="font-semibold text-primary">{currentUser.xp.toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted">Sustainability</p>
+                        <p className="text-sm text-muted">{t('sustainabilityScore')}</p>
                         <p className="font-semibold text-secondary">{currentUser.sustainabilityScore}%</p>
                       </div>
                     </div>
@@ -178,7 +180,7 @@ const Leaderboard = () => {
 
             {/* Top Achievements */}
             <Card>
-              <h3 className="font-display font-semibold mb-4">Featured Achievements</h3>
+              <h3 className="font-display font-semibold mb-4">{t('achievements')}</h3>
               <div className="space-y-3">
                 {achievements.map((achievement, index) => (
                   <div key={index} className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50">

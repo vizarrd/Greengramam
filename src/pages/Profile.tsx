@@ -1,78 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../utils/supabase';
 import Card from '../components/Card';
 import Button from '../components/Button';
-import Modal from '../components/Modal';
+import ProgressBar from '../components/ProgressBar';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useDataTranslations } from '../utils/dataTranslations';
 
 const Profile = () => {
-  const [userProfile, setUserProfile] = useState({
-    name: 'Ravi Kumar',
-    age: 45,
-    location: 'Thrissur, Kerala',
-    farmSize: '2.5 acres',
-    primaryCrops: ['Rice', 'Coconut', 'Spices'],
-    experience: '15 years',
-    avatar: '👨‍🌾',
-  });
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { translateGender, translateState, translateTaluk } = useDataTranslations();
+  
+  const [profileData, setProfileData] = useState<{
+    name: string;
+    age: number;
+    state: string;
+    taluk: string;
+    gender: string;
+  } | null>(null);
+  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [weather, setWeather] = useState({
-    temperature: 28,
-    humidity: 72,
-    condition: 'Partly Cloudy',
-    icon: '⛅',
-  });
-
-  const [recommendedCrops, setRecommendedCrops] = useState([
-    { name: 'Organic Tomatoes', season: 'Winter', icon: '🍅', reason: 'High demand, good soil conditions' },
-    { name: 'Turmeric', season: 'Post-monsoon', icon: '🌿', reason: 'Kerala specialty, medicinal value' },
-    { name: 'Black Pepper', season: 'Year-round', icon: '🫘', reason: 'High export value, suitable climate' },
-    { name: 'Cardamom', season: 'Year-round', icon: '🌱', reason: 'Premium spice, ideal for hills' },
-  ]);
-
-  const farmingPreferences = [
-    { id: 1, label: 'Organic Farming', selected: true },
-    { id: 2, label: 'Water Conservation', selected: true },
-    { id: 3, label: 'Crop Rotation', selected: false },
-    { id: 4, label: 'Integrated Pest Management', selected: true },
-    { id: 5, label: 'Soil Testing', selected: false },
-    { id: 6, label: 'Composting', selected: true },
-  ];
-
-  const achievements = [
-    { title: 'Sustainability Champion', date: '2024-01-15', icon: '🏆' },
-    { title: 'Water Conservation Expert', date: '2023-12-20', icon: '💧' },
-    { title: 'Organic Farming Pioneer', date: '2023-11-10', icon: '🌱' },
-    { title: 'Community Helper', date: '2023-10-05', icon: '🤝' },
-  ];
-
-  const personalStats = {
-    totalXP: 2450,
+  // Dashboard data
+  const userStats = {
     level: 12,
-    cropsGrown: 147,
-    sustainabilityScore: 89,
-    daysActive: 245,
-    badgesEarned: 15,
+    xp: 1850,
+    nextLevelXp: 2000,
+    sustainabilityScore: 85,
+    totalCropsGrown: 156,
+    totalHarvested: 142,
+    ecoFriendlyPractices: 23,
+    carbonFootprintReduced: 2.4,
   };
 
-  // Simulate getting user location and weather
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // In a real app, you'd call weather API here
-          console.log('Location:', position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.log('Location access denied:', error);
-        }
-      );
+  const badges = [
+    { id: 1, name: 'Green Thumb', description: 'Planted 50+ crops', icon: '🌱', earned: true },
+    { id: 2, name: 'Water Saver', description: 'Used drip irrigation', icon: '💧', earned: true },
+    { id: 3, name: 'Organic Master', description: 'No chemical pesticides for 30 days', icon: '🌿', earned: false },
+    { id: 4, name: 'Harvest Hero', description: 'Harvested 100+ crops', icon: '🌾', earned: true },
+    { id: 5, name: 'Eco Warrior', description: 'Sustainability score 90+', icon: '🛡️', earned: false },
+    { id: 6, name: 'Community Leader', description: 'Top 10 in leaderboard', icon: '👑', earned: false },
+  ];
+
+  const recentAchievements = [
+    { id: 1, title: 'Completed mulching practice', time: '2 hours ago', xp: 25 },
+    { id: 2, title: 'Harvested organic tomatoes', time: '1 day ago', xp: 15 },
+    { id: 3, title: 'Switched to bio-pesticides', time: '3 days ago', xp: 50 },
+    { id: 4, title: 'Installed rainwater harvesting', time: '1 week ago', xp: 100 },
+  ];
+
+  const sustainabilityBreakdown = [
+    { practice: 'Organic Farming', score: 90, color: 'primary' as const },
+    { practice: 'Water Conservation', score: 85, color: 'sky' as const },
+    { practice: 'Soil Health', score: 80, color: 'accent' as const },
+    { practice: 'Biodiversity', score: 88, color: 'primary' as const },
+  ];
+
+  // Simple function to fetch profile directly from Supabase
+  const fetchProfile = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
     }
-  }, []);
 
-  const handleProfileUpdate = (updatedProfile: any) => {
-    setUserProfile(updatedProfile);
-    setIsEditModalOpen(false);
+    try {
+      setLoading(true);
+      setError('');
+
+      console.log('🔍 Fetching profile for user:', user.id);
+
+      const { data, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('❌ Supabase error:', fetchError);
+        if (fetchError.code === 'PGRST116') {
+          // No profile found - user needs to complete profile creation
+          setError('Profile not found. You need to complete your profile creation first.');
+          return;
+        }
+        setError(`Failed to fetch profile: ${fetchError.message}`);
+        return;
+      }
+
+      if (data) {
+        console.log('✅ Profile found:', data);
+        setProfileData(data);
+      }
+    } catch (err) {
+      console.error('❌ Unexpected error:', err);
+      setError('An unexpected error occurred while fetching your profile.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleCompleteProfile = () => {
+    navigate('/profile-creation');
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">🌱</div>
+          <p className="text-gray-600">{t('loading')}...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h2>
+            <p className="text-red-600 mb-6 max-w-md mx-auto">{error}</p>
+            
+            <div className="space-x-4">
+              {error.includes('Profile not found') ? (
+                <Button 
+                  variant="primary" 
+                  onClick={handleCompleteProfile}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  🌱 {t('completeProfileCreation')}
+                </Button>
+              ) : (
+                <Button 
+                  variant="primary" 
+                  onClick={fetchProfile}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  🔄 {t('tryAgain')}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🌱</div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Profile Not Found</h2>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              It looks like you haven't completed your profile creation yet. Let's get you set up!
+            </p>
+            <Button 
+              variant="primary" 
+              onClick={handleCompleteProfile}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              🌱 Complete Profile Creation
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background py-8">
@@ -80,236 +184,162 @@ const Profile = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-text mb-2">
-            Farmer Profile
+            {t('welcomeFarmer').replace('Farmer', profileData.name)}! 👋
           </h1>
-          <p className="text-muted">Manage your farming journey and preferences</p>
+          <p className="text-muted">{t('trackYourJourney')}</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Info */}
-            <Card>
-              <div className="flex justify-between items-start mb-6">
-                <h2 className="font-display font-semibold text-xl">Basic Information</h2>
-                <Button 
-                  variant="accent" 
-                  size="sm"
-                  onClick={() => setIsEditModalOpen(true)}
-                >
-                  ✏️ Edit Profile
-                </Button>
+        {/* User Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+          <Card className="lg:col-span-2">
+            <div className="text-center">
+              <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">
+                  {profileData.gender === 'female' ? '👩‍🌾' : '👨‍🌾'}
+                </span>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="text-center md:text-left">
-                  <div className="text-6xl mb-4 inline-block">{userProfile.avatar}</div>
-                  <h3 className="font-display font-semibold text-xl mb-2">{userProfile.name}</h3>
-                  <p className="text-muted">📍 {userProfile.location}</p>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted">Age:</span>
-                    <span className="font-medium">{userProfile.age} years</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted">Farm Size:</span>
-                    <span className="font-medium">{userProfile.farmSize}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted">Experience:</span>
-                    <span className="font-medium">{userProfile.experience}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted">Primary Crops:</span>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {userProfile.primaryCrops.map((crop, index) => (
-                        <span key={index} className="bg-primary text-white px-2 py-1 rounded-full text-xs">
-                          {crop}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Farming Preferences */}
-            <Card>
-              <h2 className="font-display font-semibold text-xl mb-6">Farming Preferences</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {farmingPreferences.map((preference) => (
-                  <div 
-                    key={preference.id}
-                    className={`p-3 rounded-lg border-2 text-center transition-all duration-200 ${
-                      preference.selected 
-                        ? 'border-primary bg-green-50 text-primary' 
-                        : 'border-gray-200 bg-gray-50 text-muted'
-                    }`}
-                  >
-                    <div className="text-lg mb-1">
-                      {preference.selected ? '✅' : '⚪'}
-                    </div>
-                    <p className="text-sm font-medium">{preference.label}</p>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Recommended Crops */}
-            <Card>
-              <h2 className="font-display font-semibold text-xl mb-6">Recommended Crops</h2>
-              <p className="text-muted mb-4">Based on your location, soil, and weather conditions</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendedCrops.map((crop, index) => (
-                  <div key={index} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                    <div className="flex items-start space-x-3">
-                      <span className="text-2xl">{crop.icon}</span>
-                      <div>
-                        <h3 className="font-medium">{crop.name}</h3>
-                        <p className="text-sm text-muted mb-1">Best season: {crop.season}</p>
-                        <p className="text-xs text-muted">{crop.reason}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Recent Achievements */}
-            <Card>
-              <h2 className="font-display font-semibold text-xl mb-6">Recent Achievements</h2>
-              <div className="space-y-3">
-                {achievements.map((achievement, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xl">{achievement.icon}</span>
-                      <div>
-                        <p className="font-medium">{achievement.title}</p>
-                        <p className="text-sm text-muted">{new Date(achievement.date).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Personal Stats */}
-            <Card>
-              <h3 className="font-display font-semibold mb-4">Your Stats</h3>
-              <div className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{personalStats.totalXP}</p>
-                  <p className="text-sm text-muted">Total XP</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <p className="font-semibold text-secondary">{personalStats.level}</p>
-                    <p className="text-xs text-muted">Level</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-accent">{personalStats.badgesEarned}</p>
-                    <p className="text-xs text-muted">Badges</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <p className="font-semibold">{personalStats.cropsGrown}</p>
-                    <p className="text-xs text-muted">Crops Grown</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">{personalStats.daysActive}</p>
-                    <p className="text-xs text-muted">Days Active</p>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-semibold text-primary">{personalStats.sustainabilityScore}%</div>
-                  <p className="text-xs text-muted">Sustainability Score</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Current Weather */}
-            <Card>
-              <h3 className="font-display font-semibold mb-4">Local Weather</h3>
-              <div className="text-center">
-                <div className="text-4xl mb-2">{weather.icon}</div>
-                <p className="font-medium text-lg">{weather.condition}</p>
-                <p className="text-2xl font-bold text-primary mb-2">{weather.temperature}°C</p>
-                <p className="text-sm text-muted">Humidity: {weather.humidity}%</p>
-                <div className="mt-4 p-2 bg-green-50 rounded-lg">
-                  <p className="text-xs text-green-700">Perfect weather for rice cultivation!</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <h3 className="font-display font-semibold mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <Button className="w-full" size="sm">
-                  📊 View Full Dashboard
-                </Button>
-                <Button variant="accent" className="w-full" size="sm">
-                  🎮 Start Farming Game
-                </Button>
-                <Button variant="secondary" className="w-full" size="sm">
-                  🏆 Check Leaderboard
-                </Button>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Edit Profile Modal */}
-        <Modal 
-          isOpen={isEditModalOpen} 
-          onClose={() => setIsEditModalOpen(false)}
-          title="Edit Profile"
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-text mb-1">Name</label>
-              <input 
-                type="text" 
-                defaultValue={userProfile.name}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              <h2 className="font-display font-semibold text-lg">{profileData.name}</h2>
+              <p className="text-muted mb-2">Level {userStats.level} Farmer</p>
+              <p className="text-sm text-gray-600 mb-4">
+                📍 {translateTaluk(profileData.taluk)}, {translateState(profileData.state)}
+              </p>
+              <ProgressBar 
+                progress={userStats.xp} 
+                max={userStats.nextLevelXp} 
+                label="XP Progress"
+                color="primary"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text mb-1">Age</label>
-              <input 
-                type="number" 
-                defaultValue={userProfile.age}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text mb-1">Farm Size</label>
-              <input 
-                type="text" 
-                defaultValue={userProfile.farmSize}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div className="flex space-x-3 pt-4">
-              <Button onClick={() => handleProfileUpdate(userProfile)} className="flex-1">
-                Save Changes
-              </Button>
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t('age')}:</span>
+                  <span className="font-medium">{profileData.age} {t('years')}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{t('gender')}:</span>
+                  <span className="font-medium">{translateGender(profileData.gender)}</span>
+                </div>
+              </div>
               <Button 
-                variant="secondary" 
-                onClick={() => setIsEditModalOpen(false)}
-                className="flex-1"
+                variant="accent" 
+                size="sm"
+                onClick={handleCompleteProfile}
+                className="mt-4 w-full"
               >
-                Cancel
+                ✏️ {t('editProfile')}
               </Button>
             </div>
+          </Card>
+
+          <Card className="text-center">
+            <div className="text-3xl mb-2">🌿</div>
+            <h3 className="font-display font-semibold text-2xl text-primary">
+              {userStats.sustainabilityScore}%
+            </h3>
+            <p className="text-sm text-muted">{t('sustainabilityScore')}</p>
+          </Card>
+
+          <Card className="text-center">
+            <div className="text-3xl mb-2">🌾</div>
+            <h3 className="font-display font-semibold text-2xl text-secondary">
+              {userStats.totalHarvested}
+            </h3>
+            <p className="text-sm text-muted">{t('cropsHarvested')}</p>
+          </Card>
+
+          <Card className="text-center">
+            <div className="text-3xl mb-2">🌱</div>
+            <h3 className="font-display font-semibold text-2xl text-accent">
+              {userStats.carbonFootprintReduced}kg
+            </h3>
+            <p className="text-sm text-muted">CO₂ {t('reduced')}</p>
+          </Card>
+        </div>
+
+        {/* Middle Section - Achievements and Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Sustainability Breakdown */}
+          <Card>
+            <h3 className="font-display font-semibold text-lg mb-4">{t('sustainabilityBreakdown')}</h3>
+            <div className="space-y-3">
+              {sustainabilityBreakdown.map((item, index) => (
+                <div key={index}>
+                  <ProgressBar 
+                    progress={item.score} 
+                    max={100} 
+                    label={item.practice}
+                    color={item.color}
+                  />
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Recent Achievements */}
+          <Card>
+            <h3 className="font-display font-semibold text-lg mb-4">{t('recentAchievements')}</h3>
+            <div className="space-y-3">
+              {recentAchievements.map((achievement) => (
+                <div key={achievement.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-xs">{achievement.title}</p>
+                    <p className="text-xs text-muted">{achievement.time}</p>
+                  </div>
+                  <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">
+                    +{achievement.xp} XP
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Quick Stats */}
+          <Card>
+            <h3 className="font-display font-semibold text-lg mb-4">Quick Stats</h3>
+            <div className="space-y-4">
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <div className="text-xl">📈</div>
+                <p className="text-lg font-bold text-primary">+15</p>
+                <p className="text-xs text-muted">{t('newCropsPlanted')}</p>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="text-xl">🎯</div>
+                <p className="text-lg font-bold text-accent">7/10</p>
+                <p className="text-xs text-muted">{t('monthlyChallenges')}</p>
+              </div>
+              <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                <div className="text-xl">🏆</div>
+                <p className="text-lg font-bold text-secondary">#12</p>
+                <p className="text-xs text-muted">{t('inYourPanchayat')}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Badges & Achievements */}
+        <Card>
+          <h3 className="font-display font-semibold text-xl mb-6">{t('badgesAchievements')}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {badges.map((badge) => (
+              <div 
+                key={badge.id} 
+                className={`text-center p-3 rounded-lg border-2 transition-all duration-200 ${
+                  badge.earned 
+                    ? 'border-primary bg-green-50 hover:bg-green-100' 
+                    : 'border-gray-200 bg-gray-50 opacity-50'
+                }`}
+              >
+                <div className="text-2xl mb-2">{badge.icon}</div>
+                <h4 className="font-medium text-xs mb-1">{badge.name}</h4>
+                <p className="text-xs text-muted mb-2">{badge.description}</p>
+                {badge.earned && (
+                  <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">
+                    ✓ {t('earned')}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
-        </Modal>
+        </Card>
       </div>
     </div>
   );
