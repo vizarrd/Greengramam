@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Game from './pages/Game';
+import DailyChallenge from './pages/DailyChallenge';
 import Leaderboard from './pages/Leaderboard';
 import Profile from './pages/Profile';
 import SignInSignUp from './pages/SignInSignUp';
@@ -15,22 +16,37 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-background">
+          <Navbar />
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Home />} />
             <Route path="/auth" element={<SignInSignUp />} />
-            <Route path="/profile-creation" element={<ProfileCreation />} />
             <Route path="/location-test" element={<LocationApiDemo />} />
             
             {/* Protected routes */}
-            <Route path="/*" element={
+            <Route path="/profile-creation" element={
               <ProtectedRoute>
-                <Navbar />
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/game" element={<Game />} />
-                  <Route path="/leaderboard" element={<Leaderboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                </Routes>
+                <ProfileCreation />
+              </ProtectedRoute>
+            } />
+            <Route path="/game" element={
+              <ProtectedRoute>
+                <Game />
+              </ProtectedRoute>
+            } />
+            <Route path="/daily-challenge" element={
+              <ProtectedRoute>
+                <DailyChallenge />
+              </ProtectedRoute>
+            } />
+            <Route path="/leaderboard" element={
+              <ProtectedRoute>
+                <Leaderboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
           </Routes>

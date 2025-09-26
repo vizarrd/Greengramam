@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { signIn, signUp } from '../utils/supabase';
 import InputField from '../components/InputField';
@@ -17,6 +17,10 @@ const SignInSignUp: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the intended destination from location state
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +57,8 @@ const SignInSignUp: React.FC = () => {
         }
 
         if (data.user) {
-          // Redirect to home after successful sign in
-          navigate('/');
+          // Redirect to intended destination or home after successful sign in
+          navigate(from, { replace: true });
         }
       }
     } catch (err) {

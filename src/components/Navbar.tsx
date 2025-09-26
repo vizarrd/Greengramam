@@ -8,14 +8,22 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { i18n, t } = useTranslation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
-  const navigation = [
-    { name: t('home'), href: '/' },
-    { name: t('game'), href: 'https://green-gramam.vercel.app/', external: true },
-    { name: t('leaderboard'), href: '/leaderboard' },
-    { name: t('profile'), href: '/profile' },
+  // Different navigation for authenticated vs non-authenticated users
+  const publicNavigation = [
+    { name: t('home'), href: '/', external: false },
   ];
+
+  const authenticatedNavigation = [
+    { name: t('home'), href: '/', external: false },
+    { name: t('game'), href: 'https://green-gramam.vercel.app/', external: true },
+    { name: t('dailyChallenge'), href: '/daily-challenge', external: false },
+    { name: t('leaderboard'), href: '/leaderboard', external: false },
+    { name: t('profile'), href: '/profile', external: false },
+  ];
+
+  const navigation = user ? authenticatedNavigation : publicNavigation;
 
   const isActive = (href: string) => location.pathname === href;
 
@@ -89,14 +97,24 @@ const Navbar = () => {
                 </div>
               </button>
 
-              {/* Logout Button */}
-              <button
-                onClick={handleSignOut}
-                className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white ml-2"
-                title="Sign Out"
-              >
-                <ArrowRightOnRectangleIcon className="h-5 w-5" />
-              </button>
+              {/* Auth Buttons */}
+              {user ? (
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white ml-2"
+                  title="Sign Out"
+                >
+                  <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                </button>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-accent text-white hover:bg-accent-dark ml-2"
+                  title="Sign In / Sign Up"
+                >
+                  {t('signIn')}
+                </Link>
+              )}
             </div>
           </div>
 
@@ -166,14 +184,24 @@ const Navbar = () => {
               )
             ))}
             
-            {/* Mobile Logout Button */}
-            <button
-              onClick={handleSignOut}
-              className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white"
-            >
-              <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
-              Sign Out
-            </button>
+            {/* Mobile Auth Buttons */}
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 text-green-100 hover:bg-red-600 hover:text-white"
+              >
+                <ArrowRightOnRectangleIcon className="h-5 w-5 mr-2" />
+                Sign Out
+              </button>
+            ) : (
+              <Link
+                to="/auth"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 bg-accent text-white hover:bg-accent-dark"
+              >
+                {t('signIn')}
+              </Link>
+            )}
           </div>
         </div>
       )}

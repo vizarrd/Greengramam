@@ -1,0 +1,57 @@
+[
+  {
+    "question": "What is the primary goal of sustainable farming?",
+    "options": [
+      "Maximizing profit",
+      "Using more chemicals",
+      "Meeting present needs without harming future",
+      "Growing one crop only"
+    ],
+    "correctAnswer": "Meeting present needs without harming future",
+    "explanation": "Sustainability focuses on meeting current needs while preserving resources for future generations."
+  },
+  {
+    "question": "Which spice is called Black Gold of Kerala?",
+    "options": [
+      "Cardamom",
+      "Black Pepper",
+      "Cinnamon",
+      "Cloves"
+    ],
+    "correctAnswer": "Black Pepper",
+    "explanation": "Black pepper was historically very valuable in trade, earning it the name Black Gold."
+  },
+  {
+    "question": "When is the best time for rice planting in Kerala?",
+    "options": [
+      "January-February",
+      "March-April",
+      "May-June with monsoon",
+      "October-November"
+    ],
+    "correctAnswer": "May-June with monsoon",
+    "explanation": "Rice planting in Kerala traditionally begins with the monsoon season for adequate water supply."
+  },
+  {
+    "question": "What is mulching in farming?",
+    "options": [
+      "Covering soil with organic materials",
+      "Deep plowing",
+      "Adding chemical fertilizers",
+      "Removing weeds"
+    ],
+    "correctAnswer": "Covering soil with organic materials",
+    "explanation": "Mulching involves covering soil with organic matter to retain moisture and control weeds."
+  },
+  {
+    "question": "What is organic fertilizer in farming?",
+    "options": [
+      "Chemical compounds",
+      "Natural materials like compost",
+      "Synthetic nutrients",
+      "Artificial supplements"
+    ],
+    "correctAnswer": "Natural materials like compost",
+    "explanation": "Organic fertilizer is made from natural materials like cow dung, compost, and other biodegradable matter."
+  }
+]

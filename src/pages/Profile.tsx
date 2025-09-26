@@ -35,6 +35,7 @@ const Profile = () => {
     totalHarvested: 142,
     ecoFriendlyPractices: 23,
     carbonFootprintReduced: 2.4,
+    auraPoints: parseInt(localStorage.getItem('auraPoints') || '0'),
   };
 
   const badges = [
@@ -190,8 +191,8 @@ const Profile = () => {
         </div>
 
         {/* User Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-          <Card className="lg:col-span-2">
+        <div className="grid grid-cols-1 mb-8">
+          <Card className="max-w-md mx-auto">
             <div className="text-center">
               <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">
@@ -218,40 +219,12 @@ const Profile = () => {
                   <span className="text-gray-600">{t('gender')}:</span>
                   <span className="font-medium">{translateGender(profileData.gender)}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">✨ Aura Points:</span>
+                  <span className="font-bold text-purple-600">{userStats.auraPoints}</span>
+                </div>
               </div>
-              <Button 
-                variant="accent" 
-                size="sm"
-                onClick={handleCompleteProfile}
-                className="mt-4 w-full"
-              >
-                ✏️ {t('editProfile')}
-              </Button>
             </div>
-          </Card>
-
-          <Card className="text-center">
-            <div className="text-3xl mb-2">🌿</div>
-            <h3 className="font-display font-semibold text-2xl text-primary">
-              {userStats.sustainabilityScore}%
-            </h3>
-            <p className="text-sm text-muted">{t('sustainabilityScore')}</p>
-          </Card>
-
-          <Card className="text-center">
-            <div className="text-3xl mb-2">🌾</div>
-            <h3 className="font-display font-semibold text-2xl text-secondary">
-              {userStats.totalHarvested}
-            </h3>
-            <p className="text-sm text-muted">{t('cropsHarvested')}</p>
-          </Card>
-
-          <Card className="text-center">
-            <div className="text-3xl mb-2">🌱</div>
-            <h3 className="font-display font-semibold text-2xl text-accent">
-              {userStats.carbonFootprintReduced}kg
-            </h3>
-            <p className="text-sm text-muted">CO₂ {t('reduced')}</p>
           </Card>
         </div>
 
